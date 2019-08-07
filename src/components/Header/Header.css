@@ -1,0 +1,25 @@
+
+.flex-container{
+    display : flex;
+    width : 100%;
+    justify-content: space-between;
+    
+}
+li{
+    list-style: none;
+    display:inline-block;
+    margin-right: 25px;
+    font-size:1.5em;
+}
+.header-left{
+    display:flex;
+    justify-self:flex-start;
+    align-items: baseline;
+}
+
+
+.header-right{
+    justify-self:flex-end;
+    color:white;
+    margin-right:30px;
+}
