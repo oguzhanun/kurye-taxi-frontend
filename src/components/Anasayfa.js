@@ -1,22 +1,12 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-
+import {connect} from "react-redux";
 
 
 class Anasayfa extends React.Component{
 
-    state = {goster : false}
-
-    componentDidMount = async () =>{
-        if(sessionStorage.getItem("Admin-Token")){
-            //console.log(sessionStorage.getItem("Admin-Token"))
-            await this.setState({goster:true})
-           // console.log(this.state.goster)
-        }
-    }
-
     renderKontrolPaneli = () =>{
-        if(this.state.goster){
+        if(this.props.signed_in){
             return(
                 <div>
                     <br></br>
@@ -41,4 +31,9 @@ class Anasayfa extends React.Component{
     }
 }
 
-export default Anasayfa;
+const mapStateToProps = (state)=>{
+
+    return {signed_in : state.adminState.signed_in}
+}
+
+export default connect(mapStateToProps)(Anasayfa);

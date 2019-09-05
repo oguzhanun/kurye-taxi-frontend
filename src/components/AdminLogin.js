@@ -5,8 +5,11 @@ import {reduxForm, Field} from 'redux-form';
 import {Link} from 'react-router-dom';
 import history from '../history';
 import axios from '../api/axios';
+import {connect} from "react-redux";
+import {adminStateAction} from "../actions/adminStateAction";
 
-class LoginModal extends React.Component{ 
+
+class AdminLogin extends React.Component{ 
 
   state = {username:"",password:null, error:"",token:""};
 
@@ -33,14 +36,14 @@ class LoginModal extends React.Component{
     }else return null;
   }
 
-  fillTheField = ({input,label,meta,type})=>{
+  fillTheField = ({input,label,meta,type,focus})=>{
     
     const className = `field ${meta.error && meta.touched ? 'error':''}`
 
     return (
       <div className={className}>
         <label>{label}</label>
-        <input type={type} {...input}/>  {/*value={input.value} onChange={input.onChange} */}
+        <input type={type} {...input} autoFocus={focus}/>  {/*value={input.value} onChange={input.onChange} */}
         <div>{this.hataGoster(meta)}</div>
       </div>
     )
@@ -50,7 +53,7 @@ class LoginModal extends React.Component{
     history.push('/');
   }
 
-  login = (e)=>{
+  login = async (e)=>{
     //e.preventDefault(); handleSubmit fonksiyonundan dolayı kullanılmasına gerek kalmadı...
 
     if(!this.state.error){
@@ -60,21 +63,23 @@ class LoginModal extends React.Component{
 
       let token = null;
 
-      axios.post('/admin/Login', credentials).then(res=>{
+      axios.post('/admin/login', credentials).then(res=>{
         
           token = res.data;
-          console.log(JSON.stringify(res.data));
           
           sessionStorage.setItem('Admin-Token', token);
-          console.log(sessionStorage);
+          
+          // STATE DEĞİŞİMİ İÇİN ADMİNİN LOGİN DURUMUNU GÜNCELLİYORUZ...
+          this.props.adminStateAction(true);
+          
+
           history.push('/kontrol-paneli')
           },
           rej=>{console.log(rej)
         
         })
 
-        // setState xhr içinde hata veriyor.... BU TOKEN İLE İLGİLİYDİ MUHTEMELEN ŞİMDİ YAPMAYACAK AYNI ŞEYİ...
-        this.setState(token);
+        await this.setState(token);
         
     }
   }
@@ -88,8 +93,8 @@ class LoginModal extends React.Component{
               <div className="content ">
                   <form className="ui form error" onSubmit={this.props.handleSubmit(this.login)}>
 
-                    <Field name="username" type="text" component={this.fillTheField} label="Kullanıcı Adı :"></Field>
-                    <Field name="password" type="password" component={this.fillTheField} label="Şifre :"></Field>
+                    <Field name="username" type="text" focus={true} component={this.fillTheField} label="Kullanıcı Adı :"></Field>
+                    <Field name="password" type="password" focus={false} component={this.fillTheField} label="Şifre :"></Field>
                     
                     <div className="ui extra content">
                       <div className="ui two buttons">
@@ -108,7 +113,7 @@ class LoginModal extends React.Component{
   }
 }
 
-var validate = (formDegerleri) =>{
+var validateAdmin = (formDegerleri) =>{
   
   var error = {};
 
@@ -121,12 +126,13 @@ var validate = (formDegerleri) =>{
   return error;
 }
 
+const wrappedForm = reduxForm({
+  form:'loginFormAdmin',
+  validate : validateAdmin
+})(AdminLogin);
 
 
-export default reduxForm({
-  form:'loginForm',
-  validate
-})(LoginModal);
+export default connect(null, {adminStateAction})(wrappedForm)
 
 
 

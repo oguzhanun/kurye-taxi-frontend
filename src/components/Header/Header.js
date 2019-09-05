@@ -1,20 +1,71 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import './Header.css';
+import {connect} from "react-redux";
+import {adminStateAction} from "../../actions/adminStateAction"
+import history from "../../history"
+import {restoranStateAction,restoranNameAction} from "../../actions/restoranStateAction"
+import {kuryeStateAction} from "../../actions/kuryeStateAction"
 
 class Header extends React.Component{
 
     adminLogout = async () => {
-        sessionStorage.setItem("Admin-Token", "")
+        //sessionStorage.setItem("Admin-Token", undefined)
+        sessionStorage.removeItem("Admin-Token")
+        this.props.adminStateAction(false)
+        
+        history.push("/")
     }
 
     renderAdminButton = () =>{
-        if(sessionStorage.getItem("Admin-Token")){
+        console.log("renderAdminButton : ",this.props.signed_in)
+
+        if(this.props.signed_in){
             return(
-                <button onClick={this.adminLogout}>Admin Logout</button>
+                <button className="ui button red" onClick={this.adminLogout}>Admin Logout</button>
             )
         } else return (
-            <Link to="/admin-login" className="ui button">Admin Login</Link>
+            <Link to="/admin-login" className="ui button blue">Admin Login</Link>
+        )
+    }
+
+    restoranLogout = async () => {
+        //sessionStorage.setItem("Restoran-Token", undefined)
+        sessionStorage.removeItem("Restoran-Token")
+        sessionStorage.removeItem("Restoran-Name")
+        this.props.restoranStateAction(false)
+        this.props.restoranNameAction("")
+
+        history.push("/")
+    }
+
+    renderRestoranButton = () =>{
+        console.log("renderRestoranButton : ",this.props.restoran_signed_in)
+
+        if(this.props.restoran_signed_in){
+            return(
+                <button className="ui button red" onClick={this.restoranLogout}>Restoran Logout</button>
+            )
+        } else return (
+            <Link to="/login-modal" className="ui button blue">Restoran Login</Link>
+        )
+    }
+
+    kuryeLogout = async () => {
+        await sessionStorage.removeItem("Kurye-Token")
+        this.props.kuryeStateAction(false)
+        history.push("/")
+    }
+
+    renderKuryeButton = () => {
+        if(this.props.kuryeLoggedIn){
+            return(
+                <button className="ui button red" onClick={this.kuryeLogout}>Kurye Logout</button>
+            )
+        } else return (
+            <div>
+                <Link to="/kurye-modal" className="ui button blue">Kurye Login</Link>
+            </div>
         )
     }
 
@@ -30,15 +81,26 @@ class Header extends React.Component{
                         <li><Link to="">İletişim</Link></li>
                     </ul>
                 </div>
-                <div className="header-right">
-                    <Link to="/login-modal" className="ui button"> Üye Restorant Girişi </Link>
-                    <button className="ui button"> {this.renderAdminButton()} </button>
+                <div style={{clear:"both"}}></div>
+                <div className="" style={{ marginRight:"5px", marginBottom:"25px", width:"100%", float:"right", display:"inline-block"}}>
+                    <div style={{display:"inline-block", float:"right"}}>{this.renderRestoranButton()}</div>
+                    
+                    <div style={{display:"inline-block", float:"right"}}>{this.renderAdminButton()}</div>
+                    
+                    <div style={{display:"inline-block", float:"right"}}>{this.renderKuryeButton()}</div>
                 </div>
-                <br></br>
-                <br></br>
+                <div style={{clear:"both"}}></div>
             </div>
         );
     }
 }
 
-export default Header;
+const mapsStateToProps = (state) =>{
+    
+    return {signed_in : state.adminState.signed_in,
+            restoran_signed_in : state.restoranState.restoran_signed_in,
+            kuryeLoggedIn : state.kuryeState.kuryeLoggedIn}
+}
+
+export default connect(mapsStateToProps,{adminStateAction,restoranStateAction,
+                        restoranNameAction,kuryeStateAction})(Header)

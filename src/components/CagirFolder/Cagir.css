@@ -19,3 +19,12 @@
     align-self: center;
     text-align: center;   
 }
+.talepkutusu{
+    transition: width 2s;
+    transition-timing-function: ease-in;
+    /* visibility: visible */
+}
+.kaybol{
+    /* visibility: hidden */
+    width:0px;
+}

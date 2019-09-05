@@ -2,12 +2,50 @@ import React from 'react'
 import axios from 'axios'
 import history from '../history'
 import {Field, reduxForm} from 'redux-form'
+import io from "socket.io-client"
+import {Link} from "react-router-dom"
+import Table from "./Table"
 
 
 class KontrolPaneli extends React.Component{
 
-    state = {error:""}
+    state = {error:"", table:{}}
 
+    componentDidMount = async () =>{
+        const socket = io("http://localhost:8000")
+        
+        socket.emit("join", {username:"admin",password:"1234"})
+        
+        socket.on("message",(message)=>{
+            console.log(message)
+        })
+
+        const result = await axios({
+            url:"http://localhost:8000/admin/kuryeTalepleri",
+            method:"post",
+            headers:{
+                "Authorization":sessionStorage.getItem("Admin-Token")
+            }
+        })
+        
+        this.setState({table : result.data})  
+
+        socket.on("kuryeIstegi", async (message)=>{
+            console.log(message)
+            alert(message.restoranName + " kullanıcı adlı restoran "+ message.adres + 
+                " adresine kurye talebi yapmıştır.")
+            const result = await axios({
+                url:"http://localhost:8000/admin/kuryeTalepleri",
+                method:"post",
+                headers:{
+                    "Authorization":sessionStorage.getItem("Admin-Token")
+                }
+            })
+            console.log(result.data)
+            this.setState({table : result.data})  
+        })
+    }
+    
     hataGoster = (meta) => {
 
         if(meta.error){
@@ -51,7 +89,7 @@ class KontrolPaneli extends React.Component{
 
         try{
             result = await axios({
-                method:"post",
+                method:"POST",
                 url:"http://localhost:8000/admin/restorans", 
                 headers :{
                     "Authorization" : sessionStorage.getItem("Admin-Token")
@@ -78,23 +116,29 @@ class KontrolPaneli extends React.Component{
             <div className="ui container">Burası Kontrol Panelidir...
                 <br></br>
                 <br></br>
+                <Link to="/kurye-islemleri"><button className="ui button green">Kurye Ekle</button></Link>
+                <br></br>
+                <br></br>
                 <form className="ui form error" onSubmit={this.props.handleSubmit(this.formGonder)}>
                     <Field name="restoranEmail" type="text" label="Restoran Email" component={this.formInput}></Field>
                     <Field name="restoranPassword" type="text" label="Password" component={this.formInput}></Field>
                     <button className="ui basic green button">RESTORAN EKLE</button>
                 </form>
+                <br></br>
+                <br></br>
+                <Table talep={this.state.table}/>
             </div>
         )
     }
 }
 
-var validate = (formDegerleri) => {
+var validateRestoranKayit = (formDegerleri) => {
     var error = {}
 
     if(!formDegerleri.restoranEmail){
         error.restoranEmail = "Kullanıcı adı boş bırakılamaz"
     }
-    if(!formDegerleri.password){
+    if(!formDegerleri.restoranPassword){
         error.restoranPassword ="Şifre hanesi boş bırakalamaz"
     }
 
@@ -104,5 +148,5 @@ var validate = (formDegerleri) => {
 
 export default reduxForm({
     form:"RestoranKayit",
-    validate
+    validate : validateRestoranKayit
 }) (KontrolPaneli)
