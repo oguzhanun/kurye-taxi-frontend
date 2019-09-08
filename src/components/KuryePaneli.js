@@ -18,6 +18,7 @@ class KuryePaneli extends React.Component{
 
         if(history.location.state){
             sessionStorage.setItem("Kurye-Adi", history.location.state.username)
+            
         }
         const result = await axios({
             url:`http://localhost:8000/kurye/kuryeTalepleri/${sessionStorage.getItem("Kurye-Adi")}`,
@@ -40,6 +41,7 @@ class KuryePaneli extends React.Component{
         })
         this.socket.on("atama", async (msg)=>{
             console.log("müzik çal")
+            console.log(msg)
             
 
             //const alarm = new Audio("http://soundbible.com/grab.php?id=1766&type=mp3")
@@ -54,10 +56,10 @@ class KuryePaneli extends React.Component{
                 console.log(e)
 
             } finally {
-                
+                alert(msg.adres + " adresine gitmek üzere " + msg.restoran + " tarafından çağrılıyorsunuz.")    
             }
             
-            alert(msg.adres + " adresine gitmek üzere " + msg.restoran + " tarafından çağrılıyorsunuz.")
+            
             const result = await axios({
                 url:`http://localhost:8000/kurye/kuryeTalepleri/${sessionStorage.getItem("Kurye-Adi")}`,
                 method:"post",
@@ -68,7 +70,7 @@ class KuryePaneli extends React.Component{
             
             await this.setState({table : result.data}) 
 
-            history.push("/navigasyon")
+            //history.push("/navigasyon", {adres : msg.adres})
         })
     }
 

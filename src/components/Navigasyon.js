@@ -1,25 +1,43 @@
-import React from 'react';
-import MapBoxGL from 'mapbox-gl';
-import axios from 'axios';
+import React from 'react'
+import MapBoxGL from 'mapbox-gl'
+import axios from 'axios'
 import "./Navigasyon.css"
+import history from "../history"
 
 
 class Navigasyon extends React.Component
 {
     constructor (){
         super();
-        this.state = {lat : null, long : null, errorMessage:"", route:[]};
+        this.state = {lat : null, long : null, errorMessage:"", route:[],adres:null,
+            buttonCollor:"green",buttonLabel:"Navigasyonu Başlat"};
         this.map = null;
     }
 
     componentDidMount = () =>
     {
-        this.getPositionRouteAndMap();
+        MapBoxGL.accessToken = 'pk.eyJ1Ijoib2d1emhhbnVuIiwiYSI6ImNqeWZpMzJoczFjYmEzbHFvbjBhYnY4OTcifQ.F4h0g13T6AQ0UllT9Oe3CQ';
+        if(history.location.state){
+            sessionStorage.setItem("Adres",history.location.state.adres)
+            axios({
+                url:`https://api.mapbox.com/geocoding/v5/mapbox.places/${sessionStorage.getItem("Adres")}.json?access_token=${MapBoxGL.accessToken}`,
+                method:"get"
+            }).then(result=>{
+                console.log(result.data)
+                this.setState({adres : result.data.features[0].center})})
+        }
+        //this.getPositionRouteAndMap();
     }
 
     getPositionRouteAndMap = () =>{
-        window.navigator.geolocation.watchPosition(
+        if(this.state.buttonLabel === "Navigasyonu Bitir"){
+            history.push("/kurye-paneli")
+            //return olmazsa map hata veriyor. çünkü getPositionRouteAndMap metodu sonuna kadar çalıştırılıyor.
+            return
+        }
+        window.navigator.geolocation.getCurrentPosition(
             ((position)=> {
+                this.setState({buttonCollor:"red", buttonLabel:"Navigasyonu Bitir"})
                 //console.log(position.coords)
                 this.setState({lat : position.coords.latitude, long : position.coords.longitude});
                 //console.log("latitude : ", this.state.lat, "longitude : ", this.state.long)                
@@ -32,8 +50,11 @@ class Navigasyon extends React.Component
                     zoom : 14
                 });
 
-                // getRoute fonksiyonuna varış noktasının bilgisinin girilmesi gerekiyor...    
-                this.getRoute([36.314746, 41.317419]);
+                // getRoute fonksiyonuna varış noktasının bilgisinin girilmesi gerekiyor...  
+                if(this.state.adres){
+                    this.getRoute(this.state.adres);
+                }  
+
             }),
             (err) => this.setState({errorMessage : err.message})
         );
@@ -178,7 +199,7 @@ class Navigasyon extends React.Component
                 }
             });
 
-            setInterval(  () =>  {map.getSource('points').setData( {
+            window.setInterval(  () =>  {map.getSource('points').setData( {
                             "type": "FeatureCollection",
                             "features": 
                             [{
@@ -195,7 +216,17 @@ class Navigasyon extends React.Component
                     // start[0] = start[0]+i;
                     // start[1] = start[1]+i;
                     //this.updateDriverPosition()
-                },1000
+                    window.navigator.geolocation.getCurrentPosition( (position)=>{
+
+                        //await this.setState({long:position.coords.longitude, lat:position.coords.latitude})
+                        
+                        start[0] = position.coords.longitude
+                        start[1] = position.coords.latitude    
+                    }, 
+                    (err)=>{
+                        console.log(err);
+                    })
+                },2000
             ) 
         });
     }
@@ -203,8 +234,10 @@ class Navigasyon extends React.Component
     updateDriverPosition = () =>{
         window.navigator.geolocation.getCurrentPosition((position)=>
         {
+            console.log(position)
             //i = i + 0.01;
             //console.log("i = " + i)
+            
 
             this.showDriverPosition([position.coords.longitude, position.coords.latitude])
         }, (err)=>
@@ -217,7 +250,10 @@ class Navigasyon extends React.Component
     {   
         return(
             <div>
-                <div id='map'>Hello World</div>
+                <button className={`button ui ${this.state.buttonCollor}`} onClick={this.getPositionRouteAndMap}>{this.state.buttonLabel}</button>
+                <br></br>
+                <br></br>
+                <div id='map'></div>
             </div>
         );
     }

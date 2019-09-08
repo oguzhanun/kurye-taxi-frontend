@@ -7,6 +7,16 @@ class Table extends React.Component{
         history.push("/atama-modal",element)
     }
 
+    renderNavigasyonButton = (element) => {
+        return(
+            <td><button style={{margin:"auto auto"}} 
+                    className="ui button green"
+                    onClick={ () => history.push("/navigasyon", {adres : element.adres} ) }>Navigasyon
+                </button>
+            </td>
+        )    
+    }
+
     renderAtamaButton = (element) => {
         console.log(element.atamaDurumu)
         if(element.atamaDurumu === true){
@@ -43,7 +53,7 @@ class Table extends React.Component{
                                 <th>Atanan Kurye</th>
                                 <th>Talep Zamanı</th>
                                 <th>Atama Zamanı</th>
-                                {sessionStorage.getItem("Admin-Token")? <th>İş Emri</th> : null}
+                                {sessionStorage.getItem("Admin-Token")? <th>İş Emri</th> : <th>İşlem</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -56,7 +66,7 @@ class Table extends React.Component{
                                         <td data-label="Atanan Kurye">{element.atananKurye}</td>
                                         <td data-label="Talep Zamanı">{element.talepZamanı}</td>
                                         <td data-label="Atama Zamanı">{element.atamaZamanı}</td>
-                                        {sessionStorage.getItem("Admin-Token")? this.renderAtamaButton(element) : null}
+                                        {sessionStorage.getItem("Admin-Token")? this.renderAtamaButton(element) : this.renderNavigasyonButton(element)}
 
                                         {/* <td><button style={{margin:"auto auto"}} onClick={()=>this.atamaYap(element)} className="ui button red">Atama Yap</button></td> */}
                                     </tr>
